@@ -1,7 +1,7 @@
 var system = require('system');
 
 var testindex = 0;
-var loadInProgress = false;//This is set to true when a page is still loading
+var loadInProgress = false; //This is set to true when a page is still loading
 
 /*********SETTINGS*********************/
 var webPage = require('webpage');
@@ -15,7 +15,7 @@ phantom.javascriptEnabled = true;
 var fs = require('fs');
 var dir = 'out-dir';
 
-if (fs.exists(dir)){
+if (fs.exists(dir)) {
   fs.removeTree(dir);
 }
 
@@ -23,7 +23,7 @@ fs.makeDirectory(dir);
 
 console.log('All settings loaded, start with execution');
 page.onConsoleMessage = function(msg) {
-    console.log(msg);
+  console.log(msg);
 };
 
 if (system.args.length == 1) {
@@ -36,79 +36,77 @@ var password = system.args[2];
 /**********DEFINE STEPS THAT FANTOM SHOULD DO***********************/
 steps = [
 
-	//Step 1 - Open Amazon home page
-    function(){
-        console.log('Step 1 - Open home page');
-        page.open("https://portail-famille.colombes.fr/maelisportail/module/home/", function(status){
-            page.render(dir + "/home.png");
+  //Step 1 - Open Amazon home page
+  function() {
+    console.log('Step 1 - Open home page');
+    page.open("https://portail-famille.colombes.fr/maelisportail/module/home/", function(status) {
+      page.render(dir + "/home.png");
 
-		});
-    },
-	//Step 2 - Populate and submit the login form
-    function(){
-        console.log('Step 2 - Populate and submit the login form');
-		page.evaluate(function(username, password){
-			document.getElementsByName("login")[0].value=username;
-      document.getElementsByName("password")[0].value=password;
+    });
+  },
+  //Step 2 - Populate and submit the login form
+  function() {
+    console.log('Step 2 - Populate and submit the login form');
+    page.evaluate(function(username, password) {
+      document.getElementsByName("login")[0].value = username;
+      document.getElementsByName("password")[0].value = password;
       document.getElementsByClassName("linkButton")[0].click();
-		});
-        page.render(dir + "/pre-login.png");
-    },
-	//Step 3 - Wait to login user. After user is successfully logged in, user is redirected to home page. Content of the home page is saved to LoggedIn.html.
-    function(){
-		console.log("Step 3 - Wait to login user. After user is successfully logged in, user is redirected to home page. Content of the home page is saved to LoggedIn.html");
-		 var result = page.evaluate(function() {
-			return document.querySelectorAll("html")[0].outerHTML;
-		});
-        fs.write(dir + '/LoggedIn.html',result,'w');
-        page.render(dir + "/LoggedIn.png");
-    },
-    //Step 4 - Navigate to comptes regie centrale
-    function(){
-        console.log("Step 4 - Navigate to comptes");
-		page.open("https://portail-famille.colombes.fr/maelisportail/module/account/invoice/consult.dhtml?person=644871&method=invoices&regie=5", function(status){
-		});
-        console.log("rendering comptes");
-    },
-    function(){
-		console.log("comptes.html");
-		 var result = page.evaluate(function() {
-			return document.querySelectorAll("html")[0].outerHTML;
-		});
-        fs.write(dir + '/regie.html',result,'w');
-        page.render(dir + "/regie.png");
-    },
-    //Step 5 - Navigate to comptes regie coclico
-    function(){
-        console.log("Step 4 - Navigate to comptes");
-		page.open("https://portail-famille.colombes.fr/maelisportail/module/account/invoice/consult.dhtml?person=644871&method=invoices&regie=6", function(status){
-		});
-        console.log("rendering comptes");
-    },
-    function(){
-		console.log("writing comptes.html");
-		 var result = page.evaluate(function() {
-			return document.querySelectorAll("html")[0].outerHTML;
-		});
-        fs.write(dir + '/coclico.html',result,'w');
-        page.render(dir + "/coclico.png");
-    },
+    });
+    page.render(dir + "/pre-login.png");
+  },
+  //Step 3 - Wait to login user. After user is successfully logged in, user is redirected to home page. Content of the home page is saved to LoggedIn.html.
+  function() {
+    console.log("Step 3 - Wait to login user. After user is successfully logged in, user is redirected to home page. Content of the home page is saved to LoggedIn.html");
+    var result = page.evaluate(function() {
+      return document.querySelectorAll("html")[0].outerHTML;
+    });
+    fs.write(dir + '/LoggedIn.html', result, 'w');
+    page.render(dir + "/LoggedIn.png");
+  },
+  //Step 4 - Navigate to comptes regie centrale
+  function() {
+    console.log("Step 4 - Navigate to comptes");
+    page.open("https://portail-famille.colombes.fr/maelisportail/module/account/invoice/consult.dhtml?person=644871&method=invoices&regie=5", function(status) {});
+    console.log("rendering comptes");
+  },
+  function() {
+    console.log("comptes.html");
+    var result = page.evaluate(function() {
+      return document.querySelectorAll("html")[0].outerHTML;
+    });
+    fs.write(dir + '/regie.html', result, 'w');
+    page.render(dir + "/regie.png");
+  },
+  //Step 5 - Navigate to comptes regie coclico
+  function() {
+    console.log("Step 4 - Navigate to comptes");
+    page.open("https://portail-famille.colombes.fr/maelisportail/module/account/invoice/consult.dhtml?person=644871&method=invoices&regie=6", function(status) {});
+    console.log("rendering comptes");
+  },
+  function() {
+    console.log("writing comptes.html");
+    var result = page.evaluate(function() {
+      return document.querySelectorAll("html")[0].outerHTML;
+    });
+    fs.write(dir + '/coclico.html', result, 'w');
+    page.render(dir + "/coclico.png");
+  },
 ];
 /**********END STEPS THAT FANTOM SHOULD DO***********************/
 
 //Execute steps one by one
-interval = setInterval(executeRequestsStepByStep,2000);
+interval = setInterval(executeRequestsStepByStep, 2000);
 
-function executeRequestsStepByStep(){
-    if (loadInProgress == false && typeof steps[testindex] == "function") {
-        //console.log("step " + (testindex + 1));
-        steps[testindex]();
-        testindex++;
-    }
-    if (typeof steps[testindex] != "function") {
-        console.log("test complete!");
-        phantom.exit();
-    }
+function executeRequestsStepByStep() {
+  if (loadInProgress == false && typeof steps[testindex] == "function") {
+    //console.log("step " + (testindex + 1));
+    steps[testindex]();
+    testindex++;
+  }
+  if (typeof steps[testindex] != "function") {
+    console.log("test complete!");
+    phantom.exit();
+  }
 }
 
 /**
@@ -116,13 +114,13 @@ function executeRequestsStepByStep(){
  * Without this, we will get content of the page, even a page is not fully loaded.
  */
 page.onLoadStarted = function() {
-    loadInProgress = true;
-    console.log('Loading started');
+  loadInProgress = true;
+  console.log('Loading started');
 };
 page.onLoadFinished = function() {
-    loadInProgress = false;
-    console.log('Loading finished');
+  loadInProgress = false;
+  console.log('Loading finished');
 };
 page.onConsoleMessage = function(msg) {
-    console.log(msg);
+  console.log(msg);
 };
