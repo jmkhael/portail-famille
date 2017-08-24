@@ -37,7 +37,7 @@ var personid = system.args[3];
 
 var bills = [];
 var currentBill = 0;
-var loukasBills = [];
+var allBills = [];
 
 /**********DEFINE STEPS THAT PHANTOM SHOULD DO***********************/
 steps = [
@@ -141,8 +141,24 @@ steps = [
                 var lines = document.getElementById("contentPrint").querySelectorAll("tr.paireTab, tr.impaireTab");
                 for (var i = 0; i < lines.length; i++) {
                   if (lines[i].querySelectorAll("td:nth-child(3)")[0].innerText === "EL KHOURI MKHAEL LOUKAS ") {
-                    bills.push(lines[i].querySelectorAll("td:nth-child(4)")[0].innerText);
-                  }
+                    bills.push( {
+                      "id": "loukas",
+                      "amount": lines[i].querySelectorAll("td:nth-child(4)")[0].innerText
+                    }
+                    );
+                  } else if (lines[i].querySelectorAll("td:nth-child(3)")[0].innerText === "ABARAGH ADAM ") {
+                    bills.push( {
+                      "id": "adam",
+                      "amount": lines[i].querySelectorAll("td:nth-child(4)")[0].innerText
+                    }
+                    );
+                  } else {
+                   bills.push( {
+                     "id": "UNKNOWN-BILL",
+                     "amount": lines[i].querySelectorAll("td:nth-child(4)")[0].innerText
+                   }
+                   );
+                 }
                 }
 
                 return bills;
@@ -150,7 +166,7 @@ steps = [
 
               //console.log("tempBills: " + tempBills);
               for (var i = 0; i < tempBills.length; i++) {
-                loukasBills.push(tempBills[i]);
+                allBills.push(tempBills[i]);
               }
 
               currentBill++;
@@ -168,7 +184,7 @@ steps = [
         testindex++;
       }
       if (typeof steps[testindex] != "function") {
-        console.log("loukasBills: " + JSON.stringify(loukasBills));
+        console.log("bills: " + JSON.stringify(allBills));
         console.log("test complete!");
         phantom.exit();
       }
