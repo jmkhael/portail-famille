@@ -26,13 +26,14 @@ page.onConsoleMessage = function(msg) {
   console.log(msg);
 };
 
-if (system.args.length == 1) {
-  console.log('Usage: script.js username password');
+if (system.args.length !== 4) {
+  console.log('Usage: script.js username password personid');
   phantom.exit();
 }
 
 var username = system.args[1];
 var password = system.args[2];
+var personid = system.args[3];
 
 /**********DEFINE STEPS THAT PHANTOM SHOULD DO***********************/
 steps = [
@@ -70,7 +71,7 @@ steps = [
   //Step 4 - Navigate to comptes regie centrale
   function() {
     console.log("Step 4 - Navigate to comptes");
-    page.open("https://portail-famille.colombes.fr/maelisportail/module/account/invoice/consult.dhtml?person=644871&method=invoices&regie=5", function(status) {});
+    page.open("https://portail-famille.colombes.fr/maelisportail/module/account/invoice/consult.dhtml?person="+ personid + "&method=invoices&regie=5", function(status) {});
     console.log("rendering comptes");
   },
   function() {
@@ -84,7 +85,7 @@ steps = [
   //Step 5 - Navigate to comptes regie coclico
   function() {
     console.log("Step 5 - Navigate to comptes");
-    page.open("https://portail-famille.colombes.fr/maelisportail/module/account/invoice/consult.dhtml?person=644871&method=invoices&regie=6", function(status) {});
+    page.open("https://portail-famille.colombes.fr/maelisportail/module/account/invoice/consult.dhtml?person="+ personid + "&method=invoices&regie=6", function(status) {});
     console.log("rendering comptes");
   },
   function() {
