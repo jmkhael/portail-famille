@@ -35,97 +35,157 @@ var username = system.args[1];
 var password = system.args[2];
 var personid = system.args[3];
 
+var bills = [];
+var currentBill = 0;
+var loukasBills = [];
+
 /**********DEFINE STEPS THAT PHANTOM SHOULD DO***********************/
 steps = [
 
-  //Step 1 - Open Amazon home page
-  function() {
-    console.log('Step 1 - Open home page');
-    page.open("https://portail-famille.colombes.fr/maelisportail/module/home/", function(status) {
-      page.render(dir + "/home.png");
+    //Step 1 - Open Amazon home page
+    function() {
+      console.log('Step 1 - Open home page');
+      page.open("https://portail-famille.colombes.fr/maelisportail/module/home/", function(status) {
+        page.render(dir + "/home.png");
 
-    });
-  },
-  //Step 2 - Populate and submit the login form
-  function() {
-    console.log('Step 2 - Populate and submit the login form: ' + username + ', ' + password);
+      });
+    },
+    //Step 2 - Populate and submit the login form
+    function() {
+      console.log('Step 2 - Populate and submit the login form: ' + username + ', ' + password);
 
-    page.evaluate(
-      function(username, password) {
-        document.getElementsByName("login")[0].value = username;
-        document.getElementsByName("password")[0].value = password;
-        document.getElementsByClassName("linkButton")[0].click();
+      page.evaluate(
+        function(username, password) {
+          document.getElementsByName("login")[0].value = username;
+          document.getElementsByName("password")[0].value = password;
+          document.getElementsByClassName("linkButton")[0].click();
+        },
+        username, password);
+      page.render(dir + "/pre-login.png");
+    },
+    //Step 3 - Wait to login user. After user is successfully logged in, user is redirected to home page. Content of the home page is saved to LoggedIn.html.
+    function() {
+      console.log("Step 3 - Wait to login user. After user is successfully logged in, user is redirected to home page. Content of the home page is saved to LoggedIn.html");
+      var result = page.evaluate(function() {
+        return document.querySelectorAll("html")[0].outerHTML;
+      });
+      fs.write(dir + '/LoggedIn.html', result, 'w');
+      page.render(dir + "/LoggedIn.png");
+    },
+    //Step 4 - Navigate to comptes centrale
+    function() {
+      console.log("Step 4 - Navigate to regie");
+      page.open("https://portail-famille.colombes.fr/maelisportail/module/account/invoice/consult.dhtml?person=" + personid + "&method=invoices&regie=5", function(status) {});
+      console.log("rendering comptes");
+    },
+    function() {
+      console.log("comptes.html");
+      var result = page.evaluate(function() {
+        return document.querySelectorAll("html")[0].outerHTML;
+      });
+      fs.write(dir + '/regie.html', result, 'w');
+      page.render(dir + "/regie.png");
+      extractBills();
+    },
+    //Step 5 - Navigate to comptes coclico
+    function() {
+      console.log("Step 5 - Navigate to coclico");
+      page.open("https://portail-famille.colombes.fr/maelisportail/module/account/invoice/consult.dhtml?person=" + personid + "&method=invoices&regie=6", function(status) {});
+      console.log("rendering comptes");
+    },
+    function() {
+      console.log("writing comptes.html");
+      var result = page.evaluate(function() {
+        return document.querySelectorAll("html")[0].outerHTML;
+      });
+
+      fs.write(dir + '/coclico.html', result, 'w');
+      page.render(dir + "/coclico.png");
+      extractBills();
       },
-      username, password);
-    page.render(dir + "/pre-login.png");
-  },
-  //Step 3 - Wait to login user. After user is successfully logged in, user is redirected to home page. Content of the home page is saved to LoggedIn.html.
-  function() {
-    console.log("Step 3 - Wait to login user. After user is successfully logged in, user is redirected to home page. Content of the home page is saved to LoggedIn.html");
-    var result = page.evaluate(function() {
-      return document.querySelectorAll("html")[0].outerHTML;
-    });
-    fs.write(dir + '/LoggedIn.html', result, 'w');
-    page.render(dir + "/LoggedIn.png");
-  },
-  //Step 4 - Navigate to comptes regie centrale
-  function() {
-    console.log("Step 4 - Navigate to comptes");
-    page.open("https://portail-famille.colombes.fr/maelisportail/module/account/invoice/consult.dhtml?person="+ personid + "&method=invoices&regie=5", function(status) {});
-    console.log("rendering comptes");
-  },
-  function() {
-    console.log("comptes.html");
-    var result = page.evaluate(function() {
-      return document.querySelectorAll("html")[0].outerHTML;
-    });
-    fs.write(dir + '/regie.html', result, 'w');
-    page.render(dir + "/regie.png");
-  },
-  //Step 5 - Navigate to comptes regie coclico
-  function() {
-    console.log("Step 5 - Navigate to comptes");
-    page.open("https://portail-famille.colombes.fr/maelisportail/module/account/invoice/consult.dhtml?person="+ personid + "&method=invoices&regie=6", function(status) {});
-    console.log("rendering comptes");
-  },
-  function() {
-    console.log("writing comptes.html");
-    var result = page.evaluate(function() {
-      return document.querySelectorAll("html")[0].outerHTML;
-    });
-    fs.write(dir + '/coclico.html', result, 'w');
-    page.render(dir + "/coclico.png");
-  },
-];
-/**********END STEPS THAT PHANTOM SHOULD DO***********************/
+    ];
+    /**********END STEPS THAT PHANTOM SHOULD DO***********************/
 
-//Execute steps one by one
-interval = setInterval(executeRequestsStepByStep, 2000);
+    function extractBills() {
+      var tempBills = page.evaluate(function() {
+        var links = [];
+        var hrefs = document.getElementById("contentPrint").querySelectorAll("*[href*=invoiceDetail]");
+        for (var i = 0; i < hrefs.length; i++) {
+          links.push(hrefs[i].href);
+        }
 
-function executeRequestsStepByStep() {
-  if (loadInProgress == false && typeof steps[testindex] == "function") {
-    //console.log("step " + (testindex + 1));
-    steps[testindex]();
-    testindex++;
-  }
-  if (typeof steps[testindex] != "function") {
-    console.log("test complete!");
-    phantom.exit();
-  }
-}
+        return links;
+      });
 
-/**
- * These listeners are very important in order to phantom work properly. Using these listeners, we control loadInProgress marker which controls, weather a page is fully loaded.
- * Without this, we will get content of the page, even a page is not fully loaded.
- */
-page.onLoadStarted = function() {
-  loadInProgress = true;
-  console.log('Loading started');
-};
-page.onLoadFinished = function() {
-  loadInProgress = false;
-  console.log('Loading finished');
-};
-page.onConsoleMessage = function(msg) {
-  console.log(msg);
-};
+      for (var i = 0; i < tempBills.length; i++) {
+        bills.push(tempBills[i]);
+      }
+
+      currentBill = 0;
+      for (var i = 0; i < tempBills.length; i++) {
+        steps.push(function() {
+          console.log('Treating bill #' + currentBill + ': ' + bills[currentBill]);
+          page.open(bills[currentBill], function(status) {});
+        });
+
+        steps.push(function() {
+            var billResult = page.evaluate(function() {
+              return document.querySelectorAll("html")[0].outerHTML;
+            });
+
+            console.log('writing bill: ' + bills[currentBill]);
+            fs.write(dir + '/bill' + currentBill + '.html', billResult, 'w');
+
+            var tempBills = page.evaluate(function() {
+                var bills = [];
+                var lines = document.getElementById("contentPrint").querySelectorAll("tr.paireTab, tr.impaireTab");
+                for (var i = 0; i < lines.length; i++) {
+                  if (lines[i].querySelectorAll("td:nth-child(3)")[0].innerText === "EL KHOURI MKHAEL LOUKAS ") {
+                    bills.push(lines[i].querySelectorAll("td:nth-child(4)")[0].innerText);
+                  }
+                }
+
+                return bills;
+              });
+
+              //console.log("tempBills: " + tempBills);
+              for (var i = 0; i < tempBills.length; i++) {
+                loukasBills.push(tempBills[i]);
+              }
+
+              currentBill++;
+            });
+        }
+    }
+
+    //Execute steps one by one
+    interval = setInterval(executeRequestsStepByStep, 2000);
+
+    function executeRequestsStepByStep() {
+      if (loadInProgress == false && typeof steps[testindex] == "function") {
+        //console.log("step " + (testindex + 1));
+        steps[testindex]();
+        testindex++;
+      }
+      if (typeof steps[testindex] != "function") {
+        console.log("loukasBills: " + JSON.stringify(loukasBills));
+        console.log("test complete!");
+        phantom.exit();
+      }
+    }
+
+    /**
+     * These listeners are very important in order to phantom work properly. Using these listeners, we control loadInProgress marker which controls, weather a page is fully loaded.
+     * Without this, we will get content of the page, even a page is not fully loaded.
+     */
+    page.onLoadStarted = function() {
+      loadInProgress = true;
+      console.log('Loading started');
+    };
+    page.onLoadFinished = function() {
+      loadInProgress = false;
+      console.log('Loading finished');
+    };
+    page.onConsoleMessage = function(msg) {
+      console.log(msg);
+    };
