@@ -33,7 +33,8 @@ if (system.args.length == 1) {
 
 var username = system.args[1];
 var password = system.args[2];
-/**********DEFINE STEPS THAT FANTOM SHOULD DO***********************/
+
+/**********DEFINE STEPS THAT PHANTOM SHOULD DO***********************/
 steps = [
 
   //Step 1 - Open Amazon home page
@@ -46,12 +47,15 @@ steps = [
   },
   //Step 2 - Populate and submit the login form
   function() {
-    console.log('Step 2 - Populate and submit the login form');
-    page.evaluate(function(username, password) {
-      document.getElementsByName("login")[0].value = username;
-      document.getElementsByName("password")[0].value = password;
-      document.getElementsByClassName("linkButton")[0].click();
-    });
+    console.log('Step 2 - Populate and submit the login form: ' + username + ', ' + password);
+
+    page.evaluate(
+      function(username, password) {
+        document.getElementsByName("login")[0].value = username;
+        document.getElementsByName("password")[0].value = password;
+        document.getElementsByClassName("linkButton")[0].click();
+      },
+      username, password);
     page.render(dir + "/pre-login.png");
   },
   //Step 3 - Wait to login user. After user is successfully logged in, user is redirected to home page. Content of the home page is saved to LoggedIn.html.
@@ -79,7 +83,7 @@ steps = [
   },
   //Step 5 - Navigate to comptes regie coclico
   function() {
-    console.log("Step 4 - Navigate to comptes");
+    console.log("Step 5 - Navigate to comptes");
     page.open("https://portail-famille.colombes.fr/maelisportail/module/account/invoice/consult.dhtml?person=644871&method=invoices&regie=6", function(status) {});
     console.log("rendering comptes");
   },
@@ -92,7 +96,7 @@ steps = [
     page.render(dir + "/coclico.png");
   },
 ];
-/**********END STEPS THAT FANTOM SHOULD DO***********************/
+/**********END STEPS THAT PHANTOM SHOULD DO***********************/
 
 //Execute steps one by one
 interval = setInterval(executeRequestsStepByStep, 2000);
