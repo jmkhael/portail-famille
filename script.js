@@ -141,13 +141,13 @@ function extractBills() {
         var bill = {
           "type": document.getElementById("contentPrint").querySelectorAll("h1")[0].textContent.split("-")[0].trim(),
           "billNumber": document.getElementById("contentPrint").querySelectorAll("div.cellTitle")[0].textContent.split("o")[1].trim(),
-          "paid": document.getElementById("contentPrint").querySelectorAll("div.paid")[0].textContent.split(":")[1].trim(),
+          "paid": document.getElementById("contentPrint").querySelectorAll("div.paid")[0] !== undefined ? document.getElementById("contentPrint").querySelectorAll("div.paid")[0].textContent.split(":")[1].trim() : "",
           "billingDate": billInfo[0].textContent.split(":")[1].trim(),
           "payBefore": billInfo[1].textContent.split(":")[1].trim(),
           "person": billInfo[2].textContent.split(":")[1].trim(),
           "billedAmount": billInfo[3].textContent.split(":")[1].trim(),
-          "paidAmount": billInfo[4].textContent.split(":")[1].trim(),
-          "paidOn": billInfo[5].textContent.trim()
+          "paidAmount": billInfo[4] !== undefined ?billInfo[4].textContent.split(":")[1].trim():"",
+          "paidOn": billInfo[5] !== undefined ? billInfo[5].textContent.trim(): ""
         };
 
         var items = [];
@@ -166,7 +166,7 @@ function extractBills() {
         return bill;
       });
 
-      fs.write(dir + '/bill' + currentBill + '.json', JSON.stringify(tempBill), 'w');
+      fs.write(dir + '/bill' + currentBill + '.json', JSON.stringify(tempBill, null, 2), 'w');
 
       allBills.push(tempBill);
 
@@ -185,7 +185,7 @@ function executeRequestsStepByStep() {
     testindex++;
   }
   if (typeof steps[testindex] != "function") {
-    console.log("bills: " + JSON.stringify(allBills));
+    fs.write(dir + '/all-bills.json', JSON.stringify(allBills, null, 2), 'w');
     console.log("test complete!");
     phantom.exit();
   }
