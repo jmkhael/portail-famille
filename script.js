@@ -143,10 +143,13 @@ steps = [
                 "paid": document.getElementById("contentPrint").querySelectorAll("div.paid")[0].textContent.trim()
                 };
 
+                var infos = "";
                 var billInfo = document.getElementById("contentPrint").querySelectorAll("div.invoiceInformation");
                 for (var i = 0; i < billInfo.length; i++) {
-                   console.log('"' + billInfo[i].textContent.trim() + '"');
+                   infos += billInfo[i].textContent.trim();
                 }
+
+                bill["infos"] = infos;
 
                 var items = [];
                 var lines = document.getElementById("contentPrint").querySelectorAll("tr.paireTab, tr.impaireTab");
