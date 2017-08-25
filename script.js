@@ -42,169 +42,167 @@ var allBills = [];
 /**********DEFINE STEPS THAT PHANTOM SHOULD DO***********************/
 steps = [
 
-    //Step 1 - Open Amazon home page
-    function() {
-      console.log('Step 1 - Open home page');
-      page.open("https://portail-famille.colombes.fr/maelisportail/module/home/", function(status) {
-        page.render(dir + "/home.png");
+  //Step 1 - Open Amazon home page
+  function() {
+    console.log('Step 1 - Open home page');
+    page.open("https://portail-famille.colombes.fr/maelisportail/module/home/", function(status) {
+      page.render(dir + "/home.png");
 
-      });
-    },
-    //Step 2 - Populate and submit the login form
-    function() {
-      console.log('Step 2 - Populate and submit the login form: ' + username + ', ' + password);
+    });
+  },
+  //Step 2 - Populate and submit the login form
+  function() {
+    console.log('Step 2 - Populate and submit the login form: ' + username + ', ' + password);
 
-      page.evaluate(
-        function(username, password) {
-          document.getElementsByName("login")[0].value = username;
-          document.getElementsByName("password")[0].value = password;
-          document.getElementsByClassName("linkButton")[0].click();
-        },
-        username, password);
-      page.render(dir + "/pre-login.png");
-    },
-    //Step 3 - Wait to login user. After user is successfully logged in, user is redirected to home page. Content of the home page is saved to LoggedIn.html.
-    function() {
-      console.log("Step 3 - Wait to login user. After user is successfully logged in, user is redirected to home page. Content of the home page is saved to LoggedIn.html");
-      var result = page.evaluate(function() {
-        return document.querySelectorAll("html")[0].outerHTML;
-      });
-      fs.write(dir + '/LoggedIn.html', result, 'w');
-      page.render(dir + "/LoggedIn.png");
-    },
-    //Step 4 - Navigate to comptes centrale
-    function() {
-      console.log("Step 4 - Navigate to regie");
-      page.open("https://portail-famille.colombes.fr/maelisportail/module/account/invoice/consult.dhtml?person=" + personid + "&method=invoices&regie=5", function(status) {});
-      console.log("rendering comptes");
-    },
-    function() {
-      console.log("comptes.html");
-      var result = page.evaluate(function() {
-        return document.querySelectorAll("html")[0].outerHTML;
-      });
-      fs.write(dir + '/regie.html', result, 'w');
-      page.render(dir + "/regie.png");
-      extractBills();
-    },
-    //Step 5 - Navigate to comptes coclico
-    function() {
-      console.log("Step 5 - Navigate to coclico");
-      page.open("https://portail-famille.colombes.fr/maelisportail/module/account/invoice/consult.dhtml?person=" + personid + "&method=invoices&regie=6", function(status) {});
-      console.log("rendering comptes");
-    },
-    function() {
-      console.log("writing comptes.html");
-      var result = page.evaluate(function() {
-        return document.querySelectorAll("html")[0].outerHTML;
-      });
-
-      fs.write(dir + '/coclico.html', result, 'w');
-      page.render(dir + "/coclico.png");
-      extractBills();
+    page.evaluate(
+      function(username, password) {
+        document.getElementsByName("login")[0].value = username;
+        document.getElementsByName("password")[0].value = password;
+        document.getElementsByClassName("linkButton")[0].click();
       },
-    ];
-    /**********END STEPS THAT PHANTOM SHOULD DO***********************/
+      username, password);
+    page.render(dir + "/pre-login.png");
+  },
+  //Step 3 - Wait to login user. After user is successfully logged in, user is redirected to home page. Content of the home page is saved to LoggedIn.html.
+  function() {
+    console.log("Step 3 - Wait to login user. After user is successfully logged in, user is redirected to home page. Content of the home page is saved to LoggedIn.html");
+    var result = page.evaluate(function() {
+      return document.querySelectorAll("html")[0].outerHTML;
+    });
+    fs.write(dir + '/LoggedIn.html', result, 'w');
+    page.render(dir + "/LoggedIn.png");
+  },
+  //Step 4 - Navigate to comptes centrale
+  function() {
+    console.log("Step 4 - Navigate to regie");
+    page.open("https://portail-famille.colombes.fr/maelisportail/module/account/invoice/consult.dhtml?person=" + personid + "&method=invoices&regie=5", function(status) {});
+    console.log("rendering comptes");
+  },
+  function() {
+    console.log("comptes.html");
+    var result = page.evaluate(function() {
+      return document.querySelectorAll("html")[0].outerHTML;
+    });
+    fs.write(dir + '/regie.html', result, 'w');
+    page.render(dir + "/regie.png");
+    extractBills();
+  },
+  //Step 5 - Navigate to comptes coclico
+  function() {
+    console.log("Step 5 - Navigate to coclico");
+    page.open("https://portail-famille.colombes.fr/maelisportail/module/account/invoice/consult.dhtml?person=" + personid + "&method=invoices&regie=6", function(status) {});
+    console.log("rendering comptes");
+  },
+  function() {
+    console.log("writing comptes.html");
+    var result = page.evaluate(function() {
+      return document.querySelectorAll("html")[0].outerHTML;
+    });
 
-    function extractBills() {
-      var tempBills = page.evaluate(function() {
-        var links = [];
-        var hrefs = document.getElementById("contentPrint").querySelectorAll("*[href*=invoiceDetail]");
-        for (var i = 0; i < hrefs.length; i++) {
-          links.push(hrefs[i].href);
-        }
+    fs.write(dir + '/coclico.html', result, 'w');
+    page.render(dir + "/coclico.png");
+    extractBills();
+  },
+];
+/**********END STEPS THAT PHANTOM SHOULD DO***********************/
 
-        return links;
+function extractBills() {
+  var tempBills = page.evaluate(function() {
+    var links = [];
+    var hrefs = document.getElementById("contentPrint").querySelectorAll("*[href*=invoiceDetail]");
+    for (var i = 0; i < hrefs.length; i++) {
+      links.push(hrefs[i].href);
+    }
+
+    return links;
+  });
+
+  for (var i = 0; i < tempBills.length; i++) {
+    bills.push(tempBills[i]);
+  }
+
+  currentBill = 0;
+  for (var i = 0; i < tempBills.length; i++) {
+    steps.push(function() {
+      console.log('Crawling bill #' + currentBill + ': ' + bills[currentBill]);
+      page.open(bills[currentBill], function(status) {});
+    });
+
+    steps.push(function() {
+      var billResult = page.evaluate(function() {
+        return document.querySelectorAll("html")[0].outerHTML;
       });
 
-      for (var i = 0; i < tempBills.length; i++) {
-        bills.push(tempBills[i]);
-      }
+      console.log('Writing bill #' + currentBill);
+      fs.write(dir + '/bill' + currentBill + '.html', billResult, 'w');
 
-      currentBill = 0;
-      for (var i = 0; i < tempBills.length; i++) {
-        steps.push(function() {
-          console.log('Treating bill #' + currentBill + ': ' + bills[currentBill]);
-          page.open(bills[currentBill], function(status) {});
-        });
+      var tempBill = page.evaluate(function() {
+        var billInfo = document.getElementById("contentPrint").querySelectorAll("div.invoiceInformation");
+        var bill = {
+          "type": document.getElementById("contentPrint").querySelectorAll("h1")[0].textContent.split("-")[0].trim(),
+          "billNumber": document.getElementById("contentPrint").querySelectorAll("div.cellTitle")[0].textContent.split("o")[1].trim(),
+          "paid": document.getElementById("contentPrint").querySelectorAll("div.paid")[0].textContent.split(":")[1].trim(),
+          "billingDate": billInfo[0].textContent.split(":")[1].trim(),
+          "payBefore": billInfo[1].textContent.split(":")[1].trim(),
+          "person": billInfo[2].textContent.split(":")[1].trim(),
+          "billedAmount": billInfo[3].textContent.split(":")[1].trim(),
+          "paidAmount": billInfo[4].textContent.split(":")[1].trim(),
+          "paidOn": billInfo[5].textContent.trim()
+        };
 
-        steps.push(function() {
-            var billResult = page.evaluate(function() {
-              return document.querySelectorAll("html")[0].outerHTML;
-            });
-
-            console.log('writing bill: ' + bills[currentBill]);
-            fs.write(dir + '/bill' + currentBill + '.html', billResult, 'w');
-
-            var tempBill = page.evaluate(function() {
-              var bill = {
-                "type" : document.getElementById("contentPrint").querySelectorAll("h1")[0].textContent.trim(),
-                "billNumber" : document.getElementById("contentPrint").querySelectorAll("div.cellTitle")[0].textContent.trim(),
-                "paid": document.getElementById("contentPrint").querySelectorAll("div.paid")[0].textContent.trim()
-                };
-
-                var infos = "";
-                var billInfo = document.getElementById("contentPrint").querySelectorAll("div.invoiceInformation");
-                for (var i = 0; i < billInfo.length; i++) {
-                   infos += billInfo[i].textContent.trim();
-                }
-
-                bill["infos"] = infos;
-
-                var items = [];
-                var lines = document.getElementById("contentPrint").querySelectorAll("tr.paireTab, tr.impaireTab");
-                for (var i = 0; i < lines.length; i++) {
-                    items.push( {
-                      "id": lines[i].querySelectorAll("td:nth-child(3)")[0].innerText.trim(),
-                      "description": lines[i].querySelectorAll("td:nth-child(2)")[0].innerText.trim(),
-                      "period": lines[i].querySelectorAll("td:nth-child(1)")[0].innerText.trim(),
-                      "amount": lines[i].querySelectorAll("td:nth-child(4)")[0].innerText.trim()
-                    }
-                    );
-                }
-
-                bill["items"] = items;
-
-                return bill;
-              });
-
-              fs.write(dir + '/bill' + currentBill + '.json', JSON.stringify(tempBill), 'w');
-
-              allBills.push(tempBill);
-
-              currentBill++;
-            });
+        var items = [];
+        var lines = document.getElementById("contentPrint").querySelectorAll("tr.paireTab, tr.impaireTab");
+        for (var i = 0; i < lines.length; i++) {
+          items.push({
+            "id": lines[i].querySelectorAll("td:nth-child(3)")[0].innerText.trim(),
+            "description": lines[i].querySelectorAll("td:nth-child(2)")[0].innerText.trim(),
+            "period": lines[i].querySelectorAll("td:nth-child(1)")[0].innerText.trim(),
+            "amount": lines[i].querySelectorAll("td:nth-child(4)")[0].innerText.split(" ")[0].trim()
+          });
         }
-    }
 
-    //Execute steps one by one
-    interval = setInterval(executeRequestsStepByStep, 2000);
+        bill["items"] = items;
 
-    function executeRequestsStepByStep() {
-      if (loadInProgress == false && typeof steps[testindex] == "function") {
-        //console.log("step " + (testindex + 1));
-        steps[testindex]();
-        testindex++;
-      }
-      if (typeof steps[testindex] != "function") {
-        console.log("bills: " + JSON.stringify(allBills));
-        console.log("test complete!");
-        phantom.exit();
-      }
-    }
+        return bill;
+      });
 
-    /**
-     * These listeners are very important in order to phantom work properly. Using these listeners, we control loadInProgress marker which controls, weather a page is fully loaded.
-     * Without this, we will get content of the page, even a page is not fully loaded.
-     */
-    page.onLoadStarted = function() {
-      loadInProgress = true;
-      console.log('Loading started');
-    };
-    page.onLoadFinished = function() {
-      loadInProgress = false;
-      console.log('Loading finished');
-    };
-    page.onConsoleMessage = function(msg) {
-      console.log(msg);
-    };
+      fs.write(dir + '/bill' + currentBill + '.json', JSON.stringify(tempBill), 'w');
+
+      allBills.push(tempBill);
+
+      currentBill++;
+    });
+  }
+}
+
+//Execute steps one by one
+interval = setInterval(executeRequestsStepByStep, 2000);
+
+function executeRequestsStepByStep() {
+  if (loadInProgress == false && typeof steps[testindex] == "function") {
+    //console.log("step " + (testindex + 1));
+    steps[testindex]();
+    testindex++;
+  }
+  if (typeof steps[testindex] != "function") {
+    console.log("bills: " + JSON.stringify(allBills));
+    console.log("test complete!");
+    phantom.exit();
+  }
+}
+
+/**
+ * These listeners are very important in order to phantom work properly. Using these listeners, we control loadInProgress marker which controls, weather a page is fully loaded.
+ * Without this, we will get content of the page, even a page is not fully loaded.
+ */
+page.onLoadStarted = function() {
+  loadInProgress = true;
+  console.log('Loading started');
+};
+page.onLoadFinished = function() {
+  loadInProgress = false;
+  console.log('Loading finished');
+};
+page.onConsoleMessage = function(msg) {
+  console.log(msg);
+};
