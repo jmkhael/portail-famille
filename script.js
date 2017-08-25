@@ -138,27 +138,29 @@ steps = [
 
             var tempBills = page.evaluate(function() {
                 var bills = [];
+
+                var billNumber = document.getElementById("contentPrint").querySelectorAll("div.cellTitle");
+                console.log('Bill number: "' + billNumber[0].textContent.trim() + '"');
+
+                var billInfo = document.getElementById("contentPrint").querySelectorAll("div.invoiceInformation");
+                for (var i = 0; i < billInfo.length; i++) {
+                   console.log('"' + billInfo[i].textContent.trim() + '"');
+                }
+
+                var paid = document.getElementById("contentPrint").querySelectorAll("div.paid");
+                for (var i = 0; i < paid.length; i++) {
+                   console.log('Paid: "' + paid[i].textContent.trim() + '"');
+                }
+
                 var lines = document.getElementById("contentPrint").querySelectorAll("tr.paireTab, tr.impaireTab");
                 for (var i = 0; i < lines.length; i++) {
-                  if (lines[i].querySelectorAll("td:nth-child(3)")[0].innerText === "EL KHOURI MKHAEL LOUKAS ") {
                     bills.push( {
-                      "id": "loukas",
-                      "amount": lines[i].querySelectorAll("td:nth-child(4)")[0].innerText
+                      "id": lines[i].querySelectorAll("td:nth-child(3)")[0].innerText.trim(),
+                      "description": lines[i].querySelectorAll("td:nth-child(2)")[0].innerText.trim(),
+                      "period": lines[i].querySelectorAll("td:nth-child(1)")[0].innerText.trim(),
+                      "amount": lines[i].querySelectorAll("td:nth-child(4)")[0].innerText.trim()
                     }
                     );
-                  } else if (lines[i].querySelectorAll("td:nth-child(3)")[0].innerText === "ABARAGH ADAM ") {
-                    bills.push( {
-                      "id": "adam",
-                      "amount": lines[i].querySelectorAll("td:nth-child(4)")[0].innerText
-                    }
-                    );
-                  } else {
-                   bills.push( {
-                     "id": "UNKNOWN-BILL",
-                     "amount": lines[i].querySelectorAll("td:nth-child(4)")[0].innerText
-                   }
-                   );
-                 }
                 }
 
                 return bills;
