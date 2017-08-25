@@ -136,25 +136,22 @@ steps = [
             console.log('writing bill: ' + bills[currentBill]);
             fs.write(dir + '/bill' + currentBill + '.html', billResult, 'w');
 
-            var tempBills = page.evaluate(function() {
-                var bills = [];
-
-                var billNumber = document.getElementById("contentPrint").querySelectorAll("div.cellTitle");
-                console.log('Bill number: "' + billNumber[0].textContent.trim() + '"');
+            var tempBill = page.evaluate(function() {
+              var bill = {
+                "type" : document.getElementById("contentPrint").querySelectorAll("h1")[0].textContent.trim(),
+                "billNumber" : document.getElementById("contentPrint").querySelectorAll("div.cellTitle")[0].textContent.trim(),
+                "paid": document.getElementById("contentPrint").querySelectorAll("div.paid")[0].textContent.trim()
+                };
 
                 var billInfo = document.getElementById("contentPrint").querySelectorAll("div.invoiceInformation");
                 for (var i = 0; i < billInfo.length; i++) {
                    console.log('"' + billInfo[i].textContent.trim() + '"');
                 }
 
-                var paid = document.getElementById("contentPrint").querySelectorAll("div.paid");
-                for (var i = 0; i < paid.length; i++) {
-                   console.log('Paid: "' + paid[i].textContent.trim() + '"');
-                }
-
+                var items = [];
                 var lines = document.getElementById("contentPrint").querySelectorAll("tr.paireTab, tr.impaireTab");
                 for (var i = 0; i < lines.length; i++) {
-                    bills.push( {
+                    items.push( {
                       "id": lines[i].querySelectorAll("td:nth-child(3)")[0].innerText.trim(),
                       "description": lines[i].querySelectorAll("td:nth-child(2)")[0].innerText.trim(),
                       "period": lines[i].querySelectorAll("td:nth-child(1)")[0].innerText.trim(),
@@ -163,13 +160,14 @@ steps = [
                     );
                 }
 
-                return bills;
+                bill["items"] = items;
+
+                return bill;
               });
 
-              //console.log("tempBills: " + tempBills);
-              for (var i = 0; i < tempBills.length; i++) {
-                allBills.push(tempBills[i]);
-              }
+              fs.write(dir + '/bill' + currentBill + '.json', JSON.stringify(tempBill), 'w');
+
+              allBills.push(tempBill);
 
               currentBill++;
             });
