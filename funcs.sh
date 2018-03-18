@@ -17,8 +17,9 @@ if [ $# -ne 1 ]
       if [ $matches -eq 1 ]
       then
         echo $f
+	type=$(jq '.type' $f)
 	amounts=$(jq '.items[] | select(.id | contains("LOUKAS")) | .amount' $f)
-	echo $amounts
+	echo $type: $amounts
       fi
     done
 fi
