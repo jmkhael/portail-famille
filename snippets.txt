@@ -1,2 +1,11 @@
-.[].items[] | select(.id | contains("LOUKAS")) 
+.[].items[] | select(.id | contains("LOUKAS")) | .amount
+.[] as $parent | $parent.items[] | select(.id | contains("LOUKAS")) | {type: $parent.type, amount: .amount}
 
+// Filter on date /02/2018 for Loukas and group amounts per type
+.[] as $parent | select($parent.billingDate | contains("/02/2018") ) | $parent.items[] | select(.id | contains("LOUKAS")) | {type: $parent.type, amount: .amount}
+
+// Same as above - grouped by type
+[ .[] as $parent | select($parent.billingDate | contains("/02/2018") ) | $parent.items[] | select(.id | contains("LOUKAS")) | {type: $parent.type, amount: .amount} ] | group_by(.type) | map({"type": .[0].type, "amount": map(.amount | tonumber)})
+
+// Same as above - grouped by type, and sum
+[ .[] as $parent | select($parent.billingDate | contains("/02/2018") ) | $parent.items[] | select(.id | contains("LOUKAS")) | {type: $parent.type, amount: .amount} ] | group_by(.type) | map({"type": .[0].type, "amount": map(.amount | tonumber) | add})
